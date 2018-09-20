@@ -1,2 +1,5 @@
 venv/
 *.xml
+.idea/bluetooth_wardrive.iml
+.idea/markdown-navigator/
+ServerSetup/SqlServer/

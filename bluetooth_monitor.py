@@ -29,7 +29,7 @@ class BluetoothScanner:
         connection = pika.BlockingConnection(connection_params)
         self.channel = connection.channel()
         self.channel.queue_declare(queue='bt_wardrive', durable=True)
-        self.channel.exchange_declare(exchange='orange', exchange_type='direct')
+        self.channel.exchange_declare(exchange='bt_wardrive', exchange_type='direct')
 
     class MonitorCapture:
         """Inner class used to store the capture data as an object"""
@@ -75,7 +75,7 @@ class BluetoothScanner:
     def transmit_to_server(self):
         """Send the capture object to the RabbitMQ broker"""
         # If a server argument was not given then exit the program
-        self.channel.basic_publish(exchange='orange', routing_key='bt_wardrive', body=self.capture)
+        self.channel.basic_publish(exchange='bt_wardrive', routing_key='bt_wardrive', body=self.capture)
 
 
 if __name__ == '__main__':
