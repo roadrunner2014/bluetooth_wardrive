@@ -1,9 +1,12 @@
 import ast
+import json
+import sys
+
 import bluetooth
 from bs4 import BeautifulSoup
 from datetime import datetime
 import pika
-from time import sleep
+from time import sleep, strftime
 import urllib3
 
 
@@ -53,10 +56,13 @@ class BluetoothScanner:
         """Scan nearby bluetooth networks"""
         nearby_devices = bluetooth.discover_devices(lookup_names=True)
         print("Found {} devices at {}".format(len(nearby_devices), datetime.now()))
-        self.capture = self.MonitorCapture(timestamp=datetime.now(), structure=nearby_devices, ip_addr=self.ip_addr,
+        timestamp = datetime.now().strftime('%m/%d/%Y')
+        self.capture = self.MonitorCapture(timestamp=timestamp, structure=nearby_devices, ip_addr=self.ip_addr,
                                            location=self.location)
         for name, addr in nearby_devices:
             print(" %s - %s" % (addr, name))
+
+        self.capture = json.dumps(self.capture.__dict__)
 
     def transmit_to_server(self, server_addr, server_port):
         """Send the capture object to the RabbitMQ broker"""
@@ -64,22 +70,25 @@ class BluetoothScanner:
         if not server_addr:
             exit()
 
-        # Credentials: <Team Color> -- Test5423
-        credentials = pika.PlainCredentials('orange', 'cloud5243')
-        connection = pika.BlockingConnection(pika.ConnectionParameters(server_addr, server_port, '/', credentials))
+        # Credentials for external server
+        credentials = pika.PlainCredentials('orange', 'test5243')
+        connection_params = pika.ConnectionParameters(host=server_addr, port=server_port, virtual_host='/',
+                                                      credentials=credentials)
+        connection = pika.BlockingConnection(connection_params)
         channel = connection.channel()
         channel.exchange_declare(exchange='exchange_pi_to_mq', exchange_type='direct')
         channel.queue_delare('bt_wardrive')
-        # TODO: Serialize the capture into JSON format
         channel.basic_publish(exchange='exchange_pi_to_mq', routing_key='bt_wardrive', body=self.capture)
 
 
 if __name__ == '__main__':
+    server_addr = "129.114.111.193"
+    port = 5672
     btscanner = BluetoothScanner()
     try:
         while True:
             btscanner.scan_bluetooth()
-            btscanner.transmit_to_server("172.16.9.106", "15672")
+            btscanner.transmit_to_server(server_addr, port)
             sleep(60)
     except KeyboardInterrupt:
         print("\nExiting client script...")
