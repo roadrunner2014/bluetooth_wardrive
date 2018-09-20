@@ -14,4 +14,4 @@ docker run -d --hostname rabbit-server --name rabbit-image rabbitmq
 sudo docker exec -i -t <instance_name> /bin/bash
 
 # Openstack notes:
-* Will need to do an ssh-keygen and upload to the open stack to authenticate.
+Will need to do an ssh-keygen and upload to the open stack to authenticate.
