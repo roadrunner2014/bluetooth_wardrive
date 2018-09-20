@@ -1,17 +1,32 @@
-# Dependencies for the bluetooth python library
+# Setting up the Bluetooth Scanner Client
+## Dependencies
+```bash
 sudo apt upgrade
 sudo apt install python3-pip python3-dev ipython
 sudo apt install bluetooth libbluetooth-dev
 pip3 install pybluez pika
+```
 
-# To install Docker
+## Running the client
+```bash
+python3 bluetooth_monitor
+
+```
+
+# Misc Notes (Not project specific)
+## To install Docker
+```bash
 sudo apt install docker
+```
 
-# To start the Rabbit image from scratch (RabbitMQ documentation)
+## To start the Rabbit image from scratch (RabbitMQ documentation)
+```bash
 docker run -d --hostname rabbit-server --name rabbit-image rabbitmq
+```
 
 # To attach to the docker instance
+```bash
 sudo docker exec -i -t <instance_name> /bin/bash
+```
 
-# Openstack notes:
-Will need to do an ssh-keygen and upload to the open stack to authenticate.
+*Openstack notes: Will need to do an ssh-keygen and upload to the open stack to authenticate.*
