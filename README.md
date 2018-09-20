@@ -9,7 +9,7 @@ pip3 install pybluez pika
 
 ## Running the client
 ```bash
-python3 bluetooth_monitor
+python3 ./ClientSetup/bluetooth_monitor.py
 
 ```
 
@@ -24,7 +24,7 @@ sudo apt install docker
 docker run -d --hostname rabbit-server --name rabbit-image rabbitmq
 ```
 
-# To attach to the docker instance
+## To attach to the docker instance
 ```bash
 sudo docker exec -i -t <instance_name> /bin/bash
 ```
