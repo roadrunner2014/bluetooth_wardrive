@@ -15,10 +15,8 @@ sudo docker exec -i -t <instance_name> /bin/bash
 ## MELVIN's Notes
 IP ADDR (OpenStackOCI) 10.3.101.1 -- Will have a guide at a later time
 Username: THarper
-Password: mhm956
+Password: abc123 
 
 # Openstack notes:
 * Will need to do an ssh-keygen and upload to the open stack to authenticate.
-
-#
 IPADDR (GitLab) 10.3.101.60
