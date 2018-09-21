@@ -24,8 +24,8 @@ class BluetoothScanner:
 
         # Credentials for external server
         credentials = pika.PlainCredentials('orange', 'test5243')
-        connection_params = pika.ConnectionParameters(host=rabbit_server_addr, port=rabbit_server_port, virtual_host='/',
-                                                      credentials=credentials)
+        connection_params = pika.ConnectionParameters(host=rabbit_server_addr, port=rabbit_server_port,
+                                                      virtual_host='/', credentials=credentials)
         connection = pika.BlockingConnection(connection_params)
         self.channel = connection.channel()
         self.channel.queue_declare(queue='bt_wardrive', durable=True)
@@ -75,7 +75,9 @@ class BluetoothScanner:
     def transmit_to_server(self):
         """Send the capture object to the RabbitMQ broker"""
         # If a server argument was not given then exit the program
-        self.channel.basic_publish(exchange='bt_wardrive', routing_key='bt_wardrive', body=self.capture)
+        # self.channel.basic_publish(exchange='bt_wardrive', routing_key='bt_wardrive', body=self.capture)
+        self.channel.basic_publish(exchange='', routing_key='bt_wardrive', body=self.capture,
+                                   properties=pika.BasicProperties(delivery_mode=2 ))
 
 
 if __name__ == '__main__':
