@@ -64,7 +64,7 @@ class BluetoothScanner:
         """Scan nearby bluetooth networks"""
         nearby_devices = bluetooth.discover_devices(lookup_names=True)
         print("Found {} devices at {}".format(len(nearby_devices), datetime.now()))
-        timestamp = datetime.now().strftime('%m/%d/%Y')
+        timestamp = datetime.now().strftime('%m/%d/%Y %H:%M:%S')
         self.capture = self.MonitorCapture(timestamp=timestamp, structure=nearby_devices, ip_addr=self.ip_addr,
                                            location=self.location)
         for name, addr in nearby_devices:
