@@ -13,6 +13,17 @@ python3 ./ClientSetup/bluetooth_monitor.py
 
 ```
 
+# Consumer Setup
+```bash
+sudo apt-get install python3-dev libmysqlclient-dev mysql-server
+sudo pip3 install pymysql
+mysql_secure_installation
+
+# Check that the service is running
+systemctl status mysql.service
+
+```
+
 # Misc Notes (Not project specific)
 ## To install Docker
 ```bash
