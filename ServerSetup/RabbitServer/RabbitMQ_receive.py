@@ -1,10 +1,12 @@
+import json
 import time
 import pika
-import pymysql
+import sqlalchemy as sqlalchemy
+from sqlalchemy import Table, MetaData, Column, String, Integer
 
 
 class RabbitConsumer:
-    def __init__(self, rabbit_server_addr, rabbit_server_port):
+    def __init__(self, rabbit_server_addr, rabbit_server_port, sqlhost, sqluser, sqlpasswd):
         # Establish incoming connection
         credentials = pika.PlainCredentials('orange', 'test5243')
         connection_params = pika.ConnectionParameters(host=rabbit_server_addr, port=rabbit_server_port,
@@ -14,42 +16,60 @@ class RabbitConsumer:
         self.channel_in.queue_declare(queue='bt_wardrive', durable=True)
         self.channel_in.exchange_declare(exchange='bt_wardrive', exchange_type='direct')
 
+        self.sqlhost = sqlhost
+        self.sqluser = sqluser
+        self.sqlpasswd = sqlpasswd
+
     # Document received message
     def callback(self, ch, method, properties, body):
         print(" [x] Received %r" % body)
+        self.insert_data(bytes(body).decode())
         time.sleep(body.count(b'.'))
         print(" [x] Done")
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
-    # TODO: Rewrite this section using SQLAlchemy
-    def create_database(self, sqlhost, sqluser, sqlpasswd): # passwd: mysql
-        conn = pymysql.connect(host=sqlhost, user=sqluser, password=sqlpasswd)
-        cursor = conn.cursor()
+    def construct_database(self):  # passwd: mysql
+        engine = sqlalchemy.create_engine('mysql://{}:{}@{}'.format(self.sqluser, self.sqlpasswd, self.sqlhost))
+        engine.execute('CREATE DATABASE IF NOT EXISTS wardrive')
+        engine.execute('USE wardrive')
+        engine.execute(
+            'CREATE TABLE IF NOT EXISTS bluetooth(row_id INT(11) NOT NULL AUTO_INCREMENT, capture_time varchar(32),'
+            ' location varchar(32), ip_addr varchar(32), mac_addr varchar(32), ssid varchar(64), PRIMARY KEY (row_id))')
 
-        # If the database already is on the system, delete it
-        if cursor.execute('SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA where SCHEMA_NAME = "wardrive"'):
-            cursor.close()
-            self.deconstruct_database(sqlhost=sqlhost, sqluser=sqluser, sqlpasswd=sqlpasswd)
-            # Restore the cursor
-            conn = pymysql.connect(host=sqlhost, user=sqluser, password=sqlpasswd)
-            cursor = conn.cursor()
+    def insert_data(self, body):
+        """Given the message data, parse the data and store it into the database"""
+        # Parse the JSON data
+        parsed_json = json.loads(body)
+        timestamp = parsed_json['timestamp']
+        location = parsed_json['location']
+        ip_addr = parsed_json['ip_addr']
+        mac_pairs = parsed_json['mac_pairs']
 
-        # Create a fresh database
-        cursor.execute('CREATE DATABASE wardrive')
+        # Create the cursor for the table
+        engine = sqlalchemy.create_engine('mysql://{}:{}@{}'.format(self.sqluser, self.sqlpasswd, self.sqlhost))
 
-        # Create the table
-        conn.cursor().execute('USE wardrive')
-        conn.cursor().execute('CREATE TABLE bluetooth(capture_time varchar(32), location varchar(32),'
-                              ' ip_addr varchar(32), mac_addr varchar(32), ssid varchar(64))')
+        # Creating a table cast so raw sql isn't needed
+        engine.execute('USE wardrive')
+        meta = MetaData(engine)
+        table = Table(
+            'bluetooth', meta,
+            Column('row_id', Integer, primary_key=True),
+            Column('capture_time', String),
+            Column('location', String),
+            Column('ip_addr', String),
+            Column('mac_addr', String),
+            Column('ssid', String))
 
-    @staticmethod
-    def deconstruct_database(sqlhost, sqluser, sqlpasswd):
-        # TODO: Refactor this to be more class-oriented
-        print('Removing database...')
-        conn = pymysql.connect(host=sqlhost, user=sqluser, password=sqlpasswd)
-        cursor = conn.cursor()
-        cursor.execute('DROP DATABASE wardrive')
-        cursor.close()
+        # Insert the values for each mac pair
+        for mac_addr in mac_pairs:
+            ins = table.insert().values(capture_time=timestamp, location=location, ip_addr=ip_addr,
+                                        mac_addr=mac_addr, ssid=mac_pairs[mac_addr])
+            engine.connect().execute(ins)
+
+    def deconstruct_database(self):
+        # # TODO: Refactor this to be more class-oriented
+        engine = sqlalchemy.create_engine('mysql://{}:{}@{}'.format(self.sqluser, self.sqlpasswd, self.sqlhost))
+        engine.execute('DROP DATABASE wardrive')
 
 
 if __name__ == '__main__':
@@ -58,14 +78,13 @@ if __name__ == '__main__':
     sql_host = '127.0.0.1'
     sql_user = 'root'
     sql_password = 'mysql'
-    consumer = RabbitConsumer(rabbit_server_addr=server_addr, rabbit_server_port=port)
-    consumer.create_database(sqlhost=sql_host, sqluser=sql_user, sqlpasswd=sql_password)
+    consumer = RabbitConsumer(rabbit_server_addr=server_addr, rabbit_server_port=port, sqlhost=sql_host,
+                              sqluser=sql_user, sqlpasswd=sql_password)
+    consumer.construct_database()
     try:
         print(' [*] Waiting for messages. To exit, press CTRL+C')
         consumer.channel_in.basic_consume(consumer.callback, queue='bt_wardrive')
         consumer.channel_in.start_consuming()
     except KeyboardInterrupt:
-        print("\nCleaning consumer script...")
-        consumer.deconstruct_database(sqlhost=sql_host, sqluser=sql_user, sqlpasswd=sql_password)
         print("\nExiting consumer script...")
         exit()
