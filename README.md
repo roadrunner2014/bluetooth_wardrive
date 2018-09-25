@@ -25,9 +25,11 @@ systemctl status mysql.service
 ```
 
 # Misc Notes (Not project specific)
-## To install Docker
+## To install Docker & Docker Compose
 ```bash
 sudo apt install docker
+sudo curl -L "https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
 ```
 
 ## To start the Rabbit image from scratch (RabbitMQ documentation)
@@ -38,6 +40,18 @@ docker run -d --hostname rabbit-server --name rabbit-image rabbitmq
 ## To attach to the docker instance
 ```bash
 sudo docker exec -i -t <instance_name> /bin/bash
+```
+
+## Docker-Compose
+```bash
+cd ./ServerSetup/DjangoServer/
+docker-compose build
+# Initial container start
+docker-compose up -d
+# Stopping a container
+docker-compose stop
+# Restarting a container
+docker-compose start
 ```
 
 *Openstack notes: Will need to do an ssh-keygen and upload to the open stack to authenticate.*

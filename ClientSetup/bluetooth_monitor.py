@@ -75,9 +75,8 @@ class BluetoothScanner:
     def transmit_to_server(self):
         """Send the capture object to the RabbitMQ broker"""
         # If a server argument was not given then exit the program
-        # self.channel.basic_publish(exchange='bt_wardrive', routing_key='bt_wardrive', body=self.capture)
         self.channel.basic_publish(exchange='', routing_key='bt_wardrive', body=self.capture,
-                                   properties=pika.BasicProperties(delivery_mode=2 ))
+                                   properties=pika.BasicProperties(delivery_mode=2))
 
 
 if __name__ == '__main__':
