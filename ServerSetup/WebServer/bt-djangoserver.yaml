@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-server-deployment
+  labels:
+    app: django-server
+spec:
+  selector:
+    matchLabels:
+      app: django-server
+  template:
+    metadata:
+      labels:
+        app: django-server
+    spec:
+      containers:
+        - name: django-server
+          image: bt-webserver
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
