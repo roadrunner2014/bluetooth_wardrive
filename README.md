@@ -99,3 +99,7 @@ Start the Deployment (Note the --image-pull-policy=Never flag makes kube look fo
 ```bash
 kubectl run bt-webserver --image=bt-webserver:v1 --port=8080 --image-pull-policy=Never
 ```
+To run a different version of the kubectl (Working version ==> v1.10.7)
+```bash
+minikube delete; minikube start
+```
