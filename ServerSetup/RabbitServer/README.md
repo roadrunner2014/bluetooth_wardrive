@@ -5,3 +5,5 @@
 service rabbitmq-server start
 service mysql start
 python3 /bluetooth_wardrive/ServerSetup/RabbitServer/RabbitMQ_receive.py
+
+# modify RabbitMQ_receive.py with new sql_user: 'jaycryderman' and sql_password:  'mysql'
